@@ -1,14 +1,14 @@
 import os
 from flask_bootstrap import Bootstrap5
-from flask import Flask, request, render_template,redirect,url_for
+from flask import Flask, render_template,redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship,mapped_column
-from sqlalchemy import Column, Integer, String, DateTime, Float,ForeignKey
+from sqlalchemy import Integer, String, DateTime, Float,ForeignKey
 from datetime import datetime
 import pandas as pd
-
 from FlaskForms import ScrapeForm
 from scraper import scrape_amazon,fetch_snapshot
+from graph import make_price_chart
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -99,7 +99,6 @@ def import_snapshot(snapshot_id):
             existing.name = item["title"]
             existing.img_url = item["image_url"]
             existing.price = item["initial_price"]
-            existing.created_at = datetime.now()
             existing.job_id = job.id
         else:
             new_product = Product(
@@ -123,7 +122,13 @@ def import_snapshot(snapshot_id):
 def view_product(product_id):
     requested_product = db.get_or_404(Product, product_id)
     price_history = db.session.execute(db.select(ProductPrice).where(ProductPrice.product_id==product_id)).scalars().all()
-    return render_template("product.html",product=requested_product,price_history=price_history)
+
+    dates = [p.checked_at for p in price_history]
+    prices = [p.price for p in price_history]
+
+    img = make_price_chart(dates, prices, f"Price history for {requested_product.name[0:110]}...")
+    return render_template("product.html",product=requested_product,price_history=price_history,chart_img = img)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
