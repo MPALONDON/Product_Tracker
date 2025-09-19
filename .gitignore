@@ -1,0 +1,7 @@
+.env
+credentials.json
+data.json
+/instance
+.instance
+data.csv
+.venv
