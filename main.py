@@ -151,6 +151,9 @@ def delete_product(product_id):
 @app.route('/product/favourite/<int:product_id>', methods=['GET', 'POST'])
 def mark_favourites(product_id):
     product = db.get_or_404(Product, product_id)
+    if product.favorite_entry:
+        flash("Product already marked as favourite","danger")
+        return redirect(url_for("all_products"))
     fav = Favourites(product=product)
     db.session.add(fav)
     db.session.commit()
@@ -159,9 +162,11 @@ def mark_favourites(product_id):
 
 @app.route('/products/favourites/<int:favourite_id>', methods=['GET', 'POST'])
 def remove_favourites(favourite_id):
-    product = db.session.execute(db.select(Favourites).where(Favourites.id == favourite_id)).scalar_one_or_none()
-    db.session.delete(product)
+    favourite = db.session.execute(db.select(Favourites).where(Favourites.id == favourite_id)).scalar_one_or_none()
+    product_name = favourite.product.name
+    db.session.delete(favourite)
     db.session.commit()
+    flash(f"removed {product_name[0:110]}... from favourites","success")
     return redirect(url_for("favourites"))
 
 @app.route('/products/favourites', methods=['GET', 'POST'])
