@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+{% from 'bootstrap5/form.html' import render_form %}
+<html lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    {{ bootstrap.load_css() }}
+    <meta charset="UTF-8">
+    <title>All Products</title>
+</head>
+<body>
+{{ bootstrap.load_js() }}
+<div class="container-fluid px-5 py-5">
+<h1>Favourites</h1>
+<br>
+<br>
+
+    <a href="{{ url_for('all_products') }}" class="btn btn-dark">
+  <i class="bi bi-arrow-left"></i> All Products
+</a><br><br>
+
+
+<h3>{{total_entries}} total entries</h3>
+<table class="table table-dark table-striped">
+    <tr>
+        <th>Remove from favourites</th>
+        <th>Name</th>
+        <th>Image URL</th>
+        <th>Website URL</th>
+        <th>Item Price</th>
+        <th>Date of last scrape GMT</th>
+        <th>Delete Entry</th>
+    </tr>
+
+    {% for fav in all_favourites %}
+    <tr>
+        <td>
+            <form action="{{ url_for('remove_favourites',favourite_id=fav.id) }}" method="post">
+                <input class="btn btn-dark" type="submit" value="Remove from Favourites">
+            </form>
+        </td>
+
+        <td>
+            <a href= "{{ url_for('view_product', product_id = fav.product.id) }}">{{ fav.product.name }}</a>
+        </td>
+    <td>{{fav.product.img_url}}</td>
+    <td>{{fav.product.url}}</td>
+    <td>${{fav.product.price}}</td>
+    <td>{{fav.product.created_at.strftime("%m/%d/%Y, %H:%M:%S")}}</td>
+        <td>
+            <form action="{{ url_for('delete_product',product_id=fav.product.id) }}" method="post">
+                <input class="btn btn-danger" type="submit" value="Delete"
+                onclick="return confirm('Are you sure you want to delete {{ fav.product.name }}?');">
+            </form>
+
+        </td>
+
+    </tr>
+    {%endfor%}
+</table>
+</div>
+</body>
+
+</html>

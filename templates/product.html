@@ -37,7 +37,7 @@
         <tbody>
           {% for price in price_history %}
           <tr>
-            <td>{{ price.checked_at.strftime("%m/%d/%Y")}}</td>
+            <td>{{ price.checked_at.strftime("%m/%d/%Y - %H:%M")}}</td>
             <td>${{ price.price }}</td>
           </tr>
           {% endfor %}

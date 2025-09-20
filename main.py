@@ -1,6 +1,6 @@
 import os
 from flask_bootstrap import Bootstrap5
-from flask import Flask, render_template,redirect,url_for
+from flask import Flask, render_template,redirect,url_for,flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship,mapped_column
 from sqlalchemy import Integer, String, DateTime, Float,ForeignKey
@@ -35,13 +35,21 @@ class Product(Base):
     created_at : Mapped[datetime] = mapped_column(DateTime, default=datetime.today,nullable=False)
 
     job = relationship("ScrapeJob", back_populates="products")
-    prices = relationship("ProductPrice", back_populates="product")
+    prices = relationship("ProductPrice", back_populates="product",cascade="all, delete-orphan")
+    favorite_entry = relationship("Favourites", back_populates="product")
+
+class Favourites(Base):
+    __tablename__ = "favourites"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("product.id"), nullable=False)
+
+    product = relationship("Product", back_populates="favorite_entry")
 
 
 class ProductPrice(Base):
     __tablename__ = "product_price"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey("product.id"), nullable=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey("product.id",ondelete="CASCADE"),nullable=False)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     checked_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False)
 
@@ -65,7 +73,7 @@ with app.app_context():
 data = pd.read_json("data.json")
 filtered_data = data.dropna(subset=['initial_price'])
 
-@app.route('/all_products',methods=['GET', 'POST'])
+@app.route('/products/all',methods=['GET', 'POST'])
 def all_products():
     form = ScrapeForm()
     if form.validate_on_submit():
@@ -83,10 +91,14 @@ def all_products():
 
 @app.route('/import/<snapshot_id>',methods=['GET', 'POST'])
 def import_snapshot(snapshot_id):
-    snapshot_data = fetch_snapshot(snapshot_id)
 
     job = db.session.execute(db.select(ScrapeJob).where(ScrapeJob.snapshot_id == snapshot_id)).scalar_one_or_none()
 
+    if job.status == "done":
+        flash("Snapshot already imported","error")
+        return redirect(url_for("all_products"))
+
+    snapshot_data = fetch_snapshot(snapshot_id)
     for idx,item in snapshot_data.iterrows():
         existing = db.session.execute(
             db.select(Product).where(Product.url == item["url"])
@@ -128,6 +140,35 @@ def view_product(product_id):
 
     img = make_price_chart(dates, prices, f"Price history for {requested_product.name[0:110]}...")
     return render_template("product.html",product=requested_product,price_history=price_history,chart_img = img)
+
+@app.route('/product/delete/<int:product_id>', methods=['GET', 'POST'])
+def delete_product(product_id):
+    product = db.session.execute(db.select(Product).where(Product.id == product_id)).scalar_one_or_none()
+    db.session.delete(product)
+    db.session.commit()
+    return redirect(url_for("all_products"))
+
+@app.route('/product/favourite/<int:product_id>', methods=['GET', 'POST'])
+def mark_favourites(product_id):
+    product = db.get_or_404(Product, product_id)
+    fav = Favourites(product=product)
+    db.session.add(fav)
+    db.session.commit()
+    flash(f"added {product.name[0:110]}... to favourites","success")
+    return redirect(url_for("all_products"))
+
+@app.route('/products/favourites/<int:favourite_id>', methods=['GET', 'POST'])
+def remove_favourites(favourite_id):
+    product = db.session.execute(db.select(Favourites).where(Favourites.id == favourite_id)).scalar_one_or_none()
+    db.session.delete(product)
+    db.session.commit()
+    return redirect(url_for("favourites"))
+
+@app.route('/products/favourites', methods=['GET', 'POST'])
+def favourites():
+    all_favourites = db.session.execute(db.select(Favourites).order_by(Favourites.id)).scalars().all()
+    total_entries = len(all_favourites)
+    return render_template("favourites.html",all_favourites=all_favourites,total_entries = total_entries)
 
 
 if __name__ == "__main__":
