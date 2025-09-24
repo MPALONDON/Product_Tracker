@@ -46,7 +46,7 @@
     {% for fav in all_favourites %}
     <tr>
         <td>
-            <form action="{{ url_for('remove_favourites',favourite_id=fav.product.id) }}" method="post">
+            <form action="{{ url_for('remove_favourites',product_id=fav.product.id) }}" method="post">
                 <input class="btn btn-dark" type="submit" value="Remove from Favourites">
             </form>
         </td>

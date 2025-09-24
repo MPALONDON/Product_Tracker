@@ -97,7 +97,8 @@ def all_products():
     db_data = db.session.execute(db.Select(Product).order_by(Product.name)).scalars().all()
     jobs = db.session.execute(db.select(ScrapeJob).order_by(ScrapeJob.created_at)).scalars().all()
     total_entries = len(db_data)
-    return render_template("home.html",db_data=db_data,form = form,total_entries=total_entries,jobs=jobs)
+    return render_template("home.html",db_data=db_data,form = form,
+                           total_entries=total_entries,jobs=jobs)
 
 @app.route('/import/<snapshot_id>',methods=['GET', 'POST'])
 def import_snapshot(snapshot_id):
@@ -151,13 +152,17 @@ def import_snapshot(snapshot_id):
 @app.route('/product/<int:product_id>', methods=['GET', 'POST'])
 def view_product(product_id):
     requested_product = db.get_or_404(Product, product_id)
-    price_history = db.session.execute(db.select(ProductPrice).where(ProductPrice.product_id==product_id)).scalars().all()
+    price_history = (db.session.execute(db.select(ProductPrice).where(ProductPrice.product_id==product_id))
+                     .scalars().all())
+
+    last_scrape = max(p.checked_at for p in price_history)
 
     dates = [p.checked_at for p in price_history]
     prices = [p.price for p in price_history]
 
     img = make_price_chart(dates, prices, f"Price history for {requested_product.name[0:110]}...")
-    return render_template("product.html",product=requested_product,price_history=price_history,chart_img = img)
+    return render_template("product.html",product=requested_product,price_history=price_history,
+                           last_scrape = last_scrape,chart_img = img)
 
 @app.route('/product/delete/<int:product_id>', methods=['GET', 'POST'])
 def delete_product(product_id):
@@ -178,9 +183,10 @@ def mark_favourites(product_id):
     flash(f"added {product.name[0:110]}... to favourites","success")
     return redirect(url_for("all_products"))
 
-@app.route('/products/favourites/<int:favourite_id>', methods=['GET', 'POST'])
-def remove_favourites(favourite_id):
-    favourite = db.session.execute(db.select(Favourites).where(Favourites.id == favourite_id)).scalar_one_or_none()
+@app.route('/products/favourites/<int:product_id>', methods=['GET', 'POST'])
+def remove_favourites(product_id):
+    favourite = (db.session.execute(db.select(Favourites).where(Favourites.product_id == product_id))
+                 .scalar_one_or_none())
     product_name = favourite.product.name
     db.session.delete(favourite)
     db.session.commit()
