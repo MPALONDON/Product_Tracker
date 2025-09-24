@@ -39,13 +39,14 @@
         <th>Website URL</th>
         <th>Item Price</th>
         <th>Date of last scrape GMT</th>
+        <th>Track Product</th>
         <th>Delete Entry</th>
     </tr>
 
     {% for fav in all_favourites %}
     <tr>
         <td>
-            <form action="{{ url_for('remove_favourites',favourite_id=fav.id) }}" method="post">
+            <form action="{{ url_for('remove_favourites',favourite_id=fav.product.id) }}" method="post">
                 <input class="btn btn-dark" type="submit" value="Remove from Favourites">
             </form>
         </td>
@@ -58,9 +59,55 @@
     <td>${{fav.product.price}}</td>
     <td>{{fav.product.created_at.strftime("%m/%d/%Y, %H:%M:%S")}}</td>
         <td>
+            <form action="{{ url_for('track_product',product_id=fav.product.id) }}" method="post">
+                <input class="btn btn-dark" type="submit" value="Track">
+            </form>
+
+        </td>
+        <td>
             <form action="{{ url_for('delete_product',product_id=fav.product.id) }}" method="post">
                 <input class="btn btn-danger" type="submit" value="Delete"
                 onclick="return confirm('Are you sure you want to delete {{ fav.product.name }}?');">
+            </form>
+
+        </td>
+
+    </tr>
+    {%endfor%}
+</table>
+</div>
+<div class = "container-fluid px-5 py-5">
+    <h3>Tracked Favourites</h3>
+    <table class="table table-dark table-striped">
+    <tr>
+        <th>Remove from Tracking</th>
+        <th>Name</th>
+        <th>Image URL</th>
+        <th>Website URL</th>
+        <th>Item Price</th>
+        <th>Date of last scrape GMT</th>
+        <th>Delete Entry</th>
+    </tr>
+
+    {% for track in tracked_favourites %}
+    <tr>
+        <td>
+            <form action="{{ url_for('remove_tracking',product_id=track.product.id) }}" method="post">
+                <input class="btn btn-dark" type="submit" value="Stop Tracking">
+            </form>
+        </td>
+
+        <td>
+            <a href= "{{ url_for('view_product', product_id=track.product.id) }}">{{ track.product.name }}</a>
+        </td>
+    <td>{{track.product.img_url}}</td>
+    <td>{{track.product.url}}</td>
+    <td>${{track.product.price}}</td>
+    <td>{{track.product.created_at.strftime("%m/%d/%Y, %H:%M:%S")}}</td>
+        <td>
+            <form action="{{ url_for('delete_product',product_id=track.product.id) }}" method="post">
+                <input class="btn btn-danger" type="submit" value="Delete"
+                onclick="return confirm('Are you sure you want to delete {{ track.product.name }}?');">
             </form>
 
         </td>
