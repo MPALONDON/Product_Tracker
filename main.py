@@ -81,8 +81,6 @@ class TrackedProducts(Base):
 with app.app_context():
     db.create_all()
 
-data = pd.read_json("data.json")
-filtered_data = data.dropna(subset=['initial_price'])
 
 @app.route('/products/all',methods=['GET', 'POST'])
 def all_products():
