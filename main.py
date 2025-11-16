@@ -10,6 +10,7 @@ from FlaskForms import ScrapeForm
 from scraper import scrape_amazon,fetch_snapshot
 from graph import make_price_chart
 import psycopg2
+import gunicorn
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -82,7 +83,7 @@ with app.app_context():
     db.create_all()
 
 
-@app.route('/products/all',methods=['GET', 'POST'])
+@app.route('/',methods=['GET', 'POST'])
 def all_products():
     form = ScrapeForm()
     if form.validate_on_submit():
