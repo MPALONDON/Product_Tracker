@@ -1,0 +1,70 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="Bootstrap_Flask" />
+          <option value="asgiref" />
+          <option value="Babel" />
+          <option value="brotli" />
+          <option value="brotlicffi" />
+          <option value="chardet" />
+          <option value="ConfigParser" />
+          <option value="contextlib2" />
+          <option value="cryptography" />
+          <option value="curio" />
+          <option value="cx_Oracle" />
+          <option value="cython" />
+          <option value="docutils" />
+          <option value="email_validator" />
+          <option value="eval_type_backport" />
+          <option value="exceptiongroup" />
+          <option value="fastapi_cli" />
+          <option value="filelock" />
+          <option value="flask_babel" />
+          <option value="h2" />
+          <option value="HTMLParser" />
+          <option value="httpx_aiohttp" />
+          <option value="hypothesis" />
+          <option value="importlib_metadata" />
+          <option value="importlib_resources" />
+          <option value="ipython" />
+          <option value="ipywidgets" />
+          <option value="jnius" />
+          <option value="keyring" />
+          <option value="matplotlib" />
+          <option value="numpy" />
+          <option value="objgraph" />
+          <option value="orjson" />
+          <option value="outcome" />
+          <option value="pandas" />
+          <option value="protobuf" />
+          <option value="psutil" />
+          <option value="pyodide" />
+          <option value="pyOpenSSL" />
+          <option value="pysqlcipher3" />
+          <option value="pytest" />
+          <option value="python_multipart" />
+          <option value="PyYAML" />
+          <option value="redis" />
+          <option value="setuptools_scm" />
+          <option value="simplejson" />
+          <option value="slack_sdk" />
+          <option value="socksio" />
+          <option value="sounddevice" />
+          <option value="Sphinx" />
+          <option value="sqlcipher3" />
+          <option value="tensorflow" />
+          <option value="toml" />
+          <option value="ujson" />
+          <option value="urllib3_secure_extra" />
+          <option value="uvloop" />
+          <option value="watchdog" />
+          <option value="xmlrpclib" />
+          <option value="zstandard" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

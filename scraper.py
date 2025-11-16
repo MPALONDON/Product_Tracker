@@ -48,3 +48,4 @@ def fetch_snapshot(snapshot_id):
     data = pd.read_json(StringIO(data_resp.text),lines=True)
     filtered_data = data.dropna(subset=['initial_price'])
     return filtered_data
+

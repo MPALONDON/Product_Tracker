@@ -9,6 +9,7 @@ import pandas as pd
 from FlaskForms import ScrapeForm
 from scraper import scrape_amazon,fetch_snapshot
 from graph import make_price_chart
+import psycopg2
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -113,11 +114,21 @@ def all_products():
     return render_template("home.html",db_data=db_data,form = form,
                            total_entries=total_entries_count,jobs=jobs,pagination=pagination)
 
+
 @app.route('/import/<snapshot_id>',methods=['GET', 'POST'])
 def import_snapshot(snapshot_id):
 
     job = db.session.execute(db.select(ScrapeJob).where(ScrapeJob.snapshot_id == snapshot_id)).scalar_one_or_none()
-    snapshot_data = fetch_snapshot(snapshot_id)
+
+    if not job:
+        return {"error": "Scrape job not found"}, 404
+    try:
+        snapshot_data = fetch_snapshot(snapshot_id)
+    except KeyError as k:
+        flash(f"Scrape has not completed yet. please wait a few mins.","danger")
+        return redirect(url_for("all_products"))
+
+
     for idx,item in snapshot_data.iterrows():
         existing = db.session.execute(
             db.select(Product).where(Product.url == item["url"])
