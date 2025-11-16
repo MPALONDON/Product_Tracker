@@ -20,7 +20,7 @@ app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY')
 class Base(DeclarativeBase):
     pass
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI",'sqlite:///data.db')
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
