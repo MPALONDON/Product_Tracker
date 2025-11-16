@@ -1,121 +1,131 @@
 <!DOCTYPE html>
-{% from 'bootstrap5/form.html' import render_form %}
 <html lang="en">
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-    {{ bootstrap.load_css() }}
     <meta charset="UTF-8">
-    <title>All Products</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favourites</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {{ bootstrap.load_css() }}
 </head>
 <body>
 {{ bootstrap.load_js() }}
-<div class="container-fluid px-5 py-5">
-<h1>Favourites</h1>
-<br>
-<br>
 
-    <a href="{{ url_for('all_products') }}" class="btn btn-dark">
-  <i class="bi bi-arrow-left"></i> All Products
-</a><br><br>
+<div class="container py-4">
+
+    <h1 class="mb-4"><i class="bi bi-star-fill"></i> Favourites & Tracked Products</h1>
+
+    <a href="{{ url_for('all_products') }}" class="btn btn-dark mb-4">
+        <i class="bi bi-arrow-left"></i> All Products
+    </a>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}" role="alert">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
+    <div class="card mb-4 p-3 shadow-sm">
+        <h4><i class="bi bi-heart-fill"></i> Favourite Products ({{ total_entries }} entries)</h4>
+        <table class="table table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Last Scrape</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fav in all_favourites %}
+                <tr>
+                    <td>
+                        <img src="{{ fav.product.img_url }}" alt="Product" class="product-thumb">
+                    </td>
+                    <td>
+                        <a href="{{ url_for('view_product', product_id=fav.product.id) }}">{{ fav.product.name }}</a>
+                        <br>
+                        <small><a href="{{ fav.product.url }}" target="_blank" class="text-muted">
+                            <i class="bi bi-box-arrow-up-right"></i> Amazon</a></small>
+                    </td>
+                    <td><strong>${{ fav.product.price }}</strong></td>
+                    <td>{{ fav.product.created_at.strftime("%m/%d/%Y, %H:%M:%S") }}</td>
+                    <td>
+                        <form action="{{ url_for('track_product', product_id=fav.product.id) }}" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-dark" title="Track this product">
+                                <i class="bi bi-bell"></i>
+                            </button>
+                        </form>
+                        <form action="{{ url_for('remove_favourites', product_id=fav.product.id) }}" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-warning" title="Remove from favourites">
+                                <i class="bi bi-star"></i>
+                            </button>
+                        </form>
+                        <form action="{{ url_for('delete_product', product_id=fav.product.id) }}" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('Delete {{ fav.product.name }}?');">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-<h3>{{total_entries}} total entries</h3>
-<table class="table table-dark table-striped">
-    <tr>
-        <th>Remove from favourites</th>
-        <th>Name</th>
-        <th>Image URL</th>
-        <th>Website URL</th>
-        <th>Item Price</th>
-        <th>Date of last scrape GMT</th>
-        <th>Track Product</th>
-        <th>Delete Entry</th>
-    </tr>
+    <div class="card mb-4 p-3 shadow-sm">
+        <h4><i class="bi bi-bell-fill"></i> Tracked Products</h4>
+        <table class="table table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Last Scrape</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for track in tracked_favourites %}
+                <tr>
+                    <td>
+                        <img src="{{ track.product.img_url }}" alt="Product" class="product-thumb">
+                    </td>
+                    <td>
+                        <a href="{{ url_for('view_product', product_id=track.product.id) }}">{{ track.product.name }}</a>
+                        <br>
+                        <small><a href="{{ track.product.url }}" target="_blank" class="text-muted">
+                            <i class="bi bi-box-arrow-up-right"></i> Amazon</a></small>
+                    </td>
+                    <td><strong>${{ track.product.price }}</strong></td>
+                    <td>{{ track.product.created_at.strftime("%m/%d/%Y, %H:%M:%S") }}</td>
+                    <td>
+                        <form action="{{ url_for('remove_tracking', product_id=track.product.id) }}" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-dark" title="Stop tracking">
+                                <i class="bi bi-bell-slash"></i>
+                            </button>
+                        </form>
+                        <form action="{{ url_for('delete_product', product_id=track.product.id) }}" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('Delete {{ track.product.name }}?');">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-    {% for fav in all_favourites %}
-    <tr>
-        <td>
-            <form action="{{ url_for('remove_favourites',product_id=fav.product.id) }}" method="post">
-                <input class="btn btn-dark" type="submit" value="Remove from Favourites">
-            </form>
-        </td>
-
-        <td>
-            <a href= "{{ url_for('view_product', product_id = fav.product.id) }}">{{ fav.product.name }}</a>
-        </td>
-    <td>{{fav.product.img_url}}</td>
-    <td>{{fav.product.url}}</td>
-    <td>${{fav.product.price}}</td>
-    <td>{{fav.product.created_at.strftime("%m/%d/%Y, %H:%M:%S")}}</td>
-        <td>
-            <form action="{{ url_for('track_product',product_id=fav.product.id) }}" method="post">
-                <input class="btn btn-dark" type="submit" value="Track">
-            </form>
-
-        </td>
-        <td>
-            <form action="{{ url_for('delete_product',product_id=fav.product.id) }}" method="post">
-                <input class="btn btn-danger" type="submit" value="Delete"
-                onclick="return confirm('Are you sure you want to delete {{ fav.product.name }}?');">
-            </form>
-
-        </td>
-
-    </tr>
-    {%endfor%}
-</table>
 </div>
-<div class = "container-fluid px-5 py-5">
-    <h3>Tracked Favourites</h3>
-    <table class="table table-dark table-striped">
-    <tr>
-        <th>Remove from Tracking</th>
-        <th>Name</th>
-        <th>Image URL</th>
-        <th>Website URL</th>
-        <th>Item Price</th>
-        <th>Date of last scrape GMT</th>
-        <th>Delete Entry</th>
-    </tr>
 
-    {% for track in tracked_favourites %}
-    <tr>
-        <td>
-            <form action="{{ url_for('remove_tracking',product_id=track.product.id) }}" method="post">
-                <input class="btn btn-dark" type="submit" value="Stop Tracking">
-            </form>
-        </td>
 
-        <td>
-            <a href= "{{ url_for('view_product', product_id=track.product.id) }}">{{ track.product.name }}</a>
-        </td>
-    <td>{{track.product.img_url}}</td>
-    <td>{{track.product.url}}</td>
-    <td>${{track.product.price}}</td>
-    <td>{{track.product.created_at.strftime("%m/%d/%Y, %H:%M:%S")}}</td>
-        <td>
-            <form action="{{ url_for('delete_product',product_id=track.product.id) }}" method="post">
-                <input class="btn btn-danger" type="submit" value="Delete"
-                onclick="return confirm('Are you sure you want to delete {{ track.product.name }}?');">
-            </form>
 
-        </td>
-
-    </tr>
-    {%endfor%}
-</table>
-</div>
 </body>
-
 </html>

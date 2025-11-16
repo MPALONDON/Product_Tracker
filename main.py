@@ -1,6 +1,6 @@
 import os
 from flask_bootstrap import Bootstrap5
-from flask import Flask, render_template,redirect,url_for,flash
+from flask import Flask, render_template,redirect,url_for,flash,request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship,mapped_column
 from sqlalchemy import Integer, String, DateTime, Float,ForeignKey
@@ -92,13 +92,26 @@ def all_products():
         job = ScrapeJob(snapshot_id=snapshot_id, keyword=name, status="pending")
         db.session.add(job)
         db.session.commit()
+        flash(f"Started scrape job for '{name}'", "success")
         return redirect(url_for('all_products'))
 
-    db_data = db.session.execute(db.Select(Product).order_by(Product.name)).scalars().all()
+    page = request.args.get('page', 1, type=int)
+
+    per_page = 20
+
+    pagination = db.paginate(
+        db.select(Product).order_by(Product.name),
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
+
+    db_data = pagination.items
     jobs = db.session.execute(db.select(ScrapeJob).order_by(ScrapeJob.created_at)).scalars().all()
-    total_entries = len(db_data)
+    total_entries = db.session.execute(db.select(Product)).scalars().all()
+    total_entries_count = len(total_entries)
     return render_template("home.html",db_data=db_data,form = form,
-                           total_entries=total_entries,jobs=jobs)
+                           total_entries=total_entries_count,jobs=jobs,pagination=pagination)
 
 @app.route('/import/<snapshot_id>',methods=['GET', 'POST'])
 def import_snapshot(snapshot_id):
@@ -159,6 +172,8 @@ def view_product(product_id):
 
     dates = [p.checked_at for p in price_history]
     prices = [p.price for p in price_history]
+    for p in price_history:
+        print(p.checked_at)
 
     img = make_price_chart(dates, prices, f"Price history for {requested_product.name[0:110]}...")
     return render_template("product.html",product=requested_product,price_history=price_history,
